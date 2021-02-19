@@ -93,29 +93,45 @@ func main() {
 	min := now.BeginningOfWeek()
 	max := now.EndOfWeek()
 
-	events, err := srv.Events.List("primary").ShowDeleted(false).
-		SingleEvents(true).TimeMin(min.Format(time.RFC3339)).TimeMax(max.Format(time.RFC3339)).Do()
+	events, err := srv.
+		Events.List("primary").
+		ShowDeleted(false).
+		OrderBy("startTime").
+		SingleEvents(true).
+		TimeMin(min.Format(time.RFC3339)).
+		TimeMax(max.Format(time.RFC3339)).
+		Do()
 	if err != nil {
 		log.Fatalf("Unable to retrieve events from the past week: %v", err)
 	}
 
-	fmt.Printf("Events between %s and %s:\n\n", min.Format(time.RFC850), max.Format(time.RFC850))
+	fmt.Printf("Attended events between %s and %s:\n\n", min.Format(time.RFC850), max.Format(time.RFC850))
 
 	if len(events.Items) == 0 {
 		fmt.Println("No events found.")
 	} else {
 		for _, item := range events.Items {
-			startDate := item.Start.DateTime
-			endDate := item.End.DateTime
-
-			if startDate == "" {
-				if item.EventType == "outOfOffice" {
-					startDate = item.Start.Date
-					endDate = item.End.Date
+			// filter out events we didn't accept
+			attended := true
+			for _, attendee := range item.Attendees {
+				if attendee.Self && attendee.ResponseStatus != "accepted" {
+					attended = false
 				}
 			}
 
-			fmt.Printf("%v (%v to %v)\n", item.Summary, startDate, endDate)
+			if attended {
+				startDate := item.Start.DateTime
+				endDate := item.End.DateTime
+
+				if startDate == "" {
+					if item.EventType == "outOfOffice" {
+						startDate = item.Start.Date
+						endDate = item.End.Date
+					}
+				}
+
+				fmt.Printf("%v (%v to %v)\n", item.Summary, startDate, endDate)
+			}
 		}
 	}
 }
