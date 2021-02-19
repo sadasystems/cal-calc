@@ -13,6 +13,8 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
+
+	"github.com/jinzhu/now"
 )
 
 // Retrieve a token, saves the token, then returns the generated client.
@@ -88,22 +90,32 @@ func main() {
 		log.Fatalf("Unable to retrieve Calendar client: %v", err)
 	}
 
-	t := time.Now().Format(time.RFC3339)
+	min := now.BeginningOfWeek()
+	max := now.EndOfWeek()
+
 	events, err := srv.Events.List("primary").ShowDeleted(false).
-		SingleEvents(true).TimeMin(t).MaxResults(10).OrderBy("startTime").Do()
+		SingleEvents(true).TimeMin(min.Format(time.RFC3339)).TimeMax(max.Format(time.RFC3339)).Do()
 	if err != nil {
-		log.Fatalf("Unable to retrieve next ten of the user's events: %v", err)
+		log.Fatalf("Unable to retrieve events from the past week: %v", err)
 	}
-	fmt.Println("Upcoming events:")
+
+	fmt.Printf("Events between %s and %s:\n\n", min.Format(time.RFC850), max.Format(time.RFC850))
+
 	if len(events.Items) == 0 {
-		fmt.Println("No upcoming events found.")
+		fmt.Println("No events found.")
 	} else {
 		for _, item := range events.Items {
-			date := item.Start.DateTime
-			if date == "" {
-				date = item.Start.Date
+			startDate := item.Start.DateTime
+			endDate := item.End.DateTime
+
+			if startDate == "" {
+				if item.EventType == "outOfOffice" {
+					startDate = item.Start.Date
+					endDate = item.End.Date
+				}
 			}
-			fmt.Printf("%v (%v)\n", item.Summary, date)
+
+			fmt.Printf("%v (%v to %v)\n", item.Summary, startDate, endDate)
 		}
 	}
 }
