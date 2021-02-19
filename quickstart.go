@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -70,10 +71,17 @@ func saveToken(path string, token *oauth2.Token) {
 }
 
 func main() {
-	client, err := google.DefaultClient(oauth2.NoContext, calendar.CalendarReadonlyScope)
+	b, err := ioutil.ReadFile("credentials.json")
 	if err != nil {
-		log.Fatalf("auth broke: %v", err)
+		log.Fatalf("Unable to read client secret file: %v", err)
 	}
+
+	// If modifying these scopes, delete your previously saved token.json.
+	config, err := google.ConfigFromJSON(b, calendar.CalendarReadonlyScope)
+	if err != nil {
+		log.Fatalf("Unable to parse client secret file to config: %v", err)
+	}
+	client := getClient(config)
 
 	srv, err := calendar.New(client)
 	if err != nil {
