@@ -5,6 +5,7 @@ Calculate ratios of meetings on your calendar.
 <!-- toc -->
 
 - [Setup](#setup)
+    * [Example output](#example-output)
 - [To do](#to-do)
 
 <!-- tocstop -->
