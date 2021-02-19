@@ -11,4 +11,4 @@ deps:
 	go get -u github.com/jinzhu/now
 
 run:
-	@go run quickstart.go
+	@go run calcalc.go
