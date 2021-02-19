@@ -37,9 +37,9 @@ Management at 3h30m0s
 Unmatched events:
   Busy
 
-  Billable usage is at 29%
+Billable usage is at 29%
 
-  14h12m29 more of your hours should be billable to reach the billable utilization practice goal
+14h12m29 more of your hours should be billable to reach the billable utilization practice goal
 ```
 
 ## To do
