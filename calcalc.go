@@ -119,17 +119,19 @@ func main() {
 				}
 			}
 
-			if attended {
-				startDate := item.Start.DateTime
-				endDate := item.End.DateTime
+			// filter out all-day events
+			allday := false
+			startDate := item.Start.DateTime
+			endDate := item.End.DateTime
 
-				if startDate == "" {
-					if item.EventType == "outOfOffice" {
-						startDate = item.Start.Date
-						endDate = item.End.Date
-					}
-				}
+			if startDate == "" || item.EventType == "outOfOffice" {
+				// the only all-day events we care about are OOO
+				// but those already mark affected events as declined, so ignore them
+				// also it turns out OOO aren't all-day events
+				allday = true
+			}
 
+			if attended && !allday {
 				fmt.Printf("%v (%v to %v)\n", item.Summary, startDate, endDate)
 			}
 		}
