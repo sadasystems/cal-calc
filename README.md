@@ -5,6 +5,7 @@ Calculate ratios of meetings on your calendar.
 <!-- toc -->
 
 - [Setup](#setup)
+- [To do](#to-do)
 
 <!-- tocstop -->
 
@@ -15,3 +16,7 @@ Calculate ratios of meetings on your calendar.
 1. Download the generated Client ID as JSON, store it as `credentials.json` in this repository
 1. `make deps` to install GoLang dependencies
 1. `make run` to run the tool
+
+## To do
+
+[GitHub Issue tracker](https://github.com/smaslennikov/cal-calc/issues) tracks lacking features.
