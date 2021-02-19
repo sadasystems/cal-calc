@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"strings"
 
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -16,6 +17,9 @@ import (
 
 	"github.com/jinzhu/now"
 )
+
+var debug = false
+var info = true
 
 // Retrieve a token, saves the token, then returns the generated client.
 func getClient(config *oauth2.Config) *http.Client {
@@ -105,7 +109,52 @@ func main() {
 		log.Fatalf("Unable to retrieve events from the past week: %v", err)
 	}
 
-	fmt.Printf("Attended events between %s and %s:\n\n", min.Format(time.RFC850), max.Format(time.RFC850))
+	// these are substrings we categorize meetings with
+	meetingKeywords := map[string][]string{
+		"Intellectual Property": []string{
+			"IP",
+		},
+		"Internal Meetings": []string{
+			"1:1 Slava:",
+			"Town hall",
+			"Anthos On-Prem Biweekly",
+			"Braintrust",
+			"Educational Webinar",
+			"Sync w",
+		},
+		"OOO": []string{},
+		"Billable": []string{
+			"Neustar",
+			"CF",
+			"EPS",
+		},
+		"Management": []string{
+			":Slava", // team 1:1s with me are set in the format "1:1 Employee:Manager"
+			"Management",
+			"Team Building",
+			"Werewolf",
+			"Weekly G Cloud Ops",
+		},
+	}
+
+	// a store for durations for each category
+	allocations := map[string]time.Duration{
+		"Intellectual Property": time.Duration(0),
+		"Internal Meetings": time.Duration(0),
+		"OOO": time.Duration(0),
+		"Billable": time.Duration(0),
+		"Management": time.Duration(0),
+	}
+
+	// unmatched meetings go here
+	unmatched := []string{}
+
+	timeFormat := "Monday, January 2"
+
+	// total time found in meetings
+	totalTime := time.Duration(0)
+
+	fmt.Printf("Parsing events between %s and %s\n\n", min.Format(timeFormat), max.Format(timeFormat))
 
 	if len(events.Items) == 0 {
 		fmt.Println("No events found.")
@@ -120,20 +169,66 @@ func main() {
 			}
 
 			// filter out all-day events
-			allday := false
-			startDate := item.Start.DateTime
-			endDate := item.End.DateTime
-
-			if startDate == "" || item.EventType == "outOfOffice" {
+			if item.Start.DateTime == "" { continue }
+			if item.EventType == "outOfOffice" {
 				// the only all-day events we care about are OOO
-				// but those already mark affected events as declined, so ignore them
+				// but those already mark affected events as declined, so ignore those and just count this event alone
 				// also it turns out OOO aren't all-day events
-				allday = true
+
+				allocations["OOO"] += 8 * time.Hour // TODO: who knows if this works right: one event per day, right?
+				totalTime += 8 * time.Hour
+				continue
 			}
 
-			if attended && !allday {
-				fmt.Printf("%v (%v to %v)\n", item.Summary, startDate, endDate)
+			start, _ := time.Parse(time.RFC3339, item.Start.DateTime)
+			end, _ := time.Parse(time.RFC3339, item.End.DateTime)
+
+			duration := end.Sub(start)
+
+			if attended {
+				if debug { fmt.Printf("%v %v\n", item.Summary, duration) }
+				matched := false
+
+				for meetingType, keywords := range meetingKeywords {
+					for _, keyword := range keywords {
+						if debug { fmt.Printf("  %v:%v\n", item.Summary, keyword) }
+						if strings.Contains(strings.ToLower(item.Summary), strings.ToLower(keyword)) {
+							if debug { fmt.Printf("    %v:%v\n", item.Summary, keyword) }
+							if debug { fmt.Printf("%v assigned to %v\n", item.Summary, meetingType) }
+
+							allocations[meetingType] += duration
+							matched = true
+						}
+					}
+				}
+
+				if !matched {
+					unmatched = append(unmatched, item.Summary)
+				} else {
+					totalTime += duration
+				}
 			}
 		}
+	}
+
+	fmt.Printf("Total time: %v\n\n", totalTime)
+
+	for t, d := range allocations {
+		fmt.Printf("%v at %v\n", t, d)
+	}
+
+	if len(unmatched) > 0 {
+		fmt.Printf("\nUnmatched events:\n")
+		for _, u := range unmatched {
+			fmt.Printf("  %v\n", u)
+		}
+	}
+
+	billableUsage := float64(allocations["Billable"])/float64(totalTime)
+	fmt.Printf("\nBillable usage is at %.0f%%\n", billableUsage * 100)
+
+	if billableUsage < 70 {
+		moreBillableHours := time.Duration((0.70 - billableUsage) * float64(totalTime))
+		fmt.Printf("\n%.8v more of your hours should be billable to reach the billable utilization practice goal\n", moreBillableHours)
 	}
 }
