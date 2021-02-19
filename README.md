@@ -44,4 +44,4 @@ Unmatched events:
 
 ## To do
 
-[GitHub Issue tracker](https://github.com/smaslennikov/cal-calc/issues) tracks lacking features.
+[GitHub Issue tracker](https://github.com/sadasystems/cal-calc/issues) tracks lacking features.
