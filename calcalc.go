@@ -120,17 +120,22 @@ func main() {
 			"Anthos On-Prem Biweekly",
 			"Braintrust",
 			"Educational Webinar",
+			"Benefits",
 			"Sync w",
+			"Beer",
 		},
 		"OOO": []string{},
 		"Billable": []string{
+			"Visby",
 			"Neustar",
+			"N*",
 			"CF",
 			"EPS",
 		},
 		"Management": []string{
 			":Slava", // team 1:1s with me are set in the format "1:1 Employee:Manager"
 			"Management",
+			"Resourcing",
 			"Team Building",
 			"Werewolf",
 			"Weekly G Cloud Ops",
