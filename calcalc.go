@@ -216,12 +216,15 @@ func main() {
 		}
 	}
 
+	// print total time
 	fmt.Printf("Total time: %v\n\n", totalTime)
 
+	// print category totals
 	for t, d := range allocations {
 		fmt.Printf("%v at %v\n", t, d)
 	}
 
+	// print unmatched events
 	if len(unmatched) > 0 {
 		fmt.Printf("\nUnmatched events:\n")
 		for _, u := range unmatched {
@@ -229,11 +232,17 @@ func main() {
 		}
 	}
 
+	// summarize billable usage
 	billableUsage := float64(allocations["Billable"])/float64(totalTime)
 	fmt.Printf("\nBillable usage is at %.0f%%\n", billableUsage * 100)
 
+	// instruct how much billable usage is missing
 	if billableUsage < 70 {
 		moreBillableHours := time.Duration((0.70 - billableUsage) * float64(totalTime))
-		fmt.Printf("\n%.8v more of your hours should be billable to reach the billable utilization practice goal\n", moreBillableHours)
+		fmt.Printf("\n%.5v more of your hours should be billable\n", moreBillableHours)
 	}
+
+	timeLeft := 40 * time.Hour - totalTime
+
+	fmt.Printf("%v left in the week\n", timeLeft)
 }
