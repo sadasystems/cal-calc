@@ -123,6 +123,7 @@ func main() {
 			"Benefits",
 			"Sync w",
 			"Beer",
+			"InfraMod",
 		},
 		"OOO": []string{},
 		"Billable": []string{
@@ -131,6 +132,7 @@ func main() {
 			"N*",
 			"CF",
 			"EPS",
+			"Governance",
 		},
 		"Management": []string{
 			":Slava", // team 1:1s with me are set in the format "1:1 Employee:Manager"
