@@ -126,6 +126,9 @@ func calculate() {
 			"InfraMod",
 		},
 		"OOO": []string{},
+		"Goals": []string{
+			"Goals",
+		},
 		"Billable": []string{
 			"Visby",
 			"Neustar",
@@ -149,6 +152,7 @@ func calculate() {
 		"Intellectual Property": time.Duration(0),
 		"Internal Meetings": time.Duration(0),
 		"OOO": time.Duration(0),
+		"Goals": time.Duration(0),
 		"Billable": time.Duration(0),
 		"Management": time.Duration(0),
 	}
