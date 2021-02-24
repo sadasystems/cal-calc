@@ -5,7 +5,6 @@ import (
 	"os"
 	"github.com/spf13/cobra"
 
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
 
@@ -38,7 +37,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/cal-calc.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./config.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -51,13 +50,9 @@ func initConfig() {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Find home directory.
-		home, err := homedir.Dir()
-		cobra.CheckErr(err)
-
-		// Search config in home directory with name ".cal-calc" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".cal-calc")
+		// couldn't for the life of me figure out the right way to do this with viper
+		cfgFile = "./config.yaml"
+		viper.SetConfigFile(cfgFile)
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match

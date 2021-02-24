@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 	"strings"
+	"path/filepath"
 
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -16,6 +17,7 @@ import (
 	"google.golang.org/api/calendar/v3"
 
 	"github.com/jinzhu/now"
+	"gopkg.in/yaml.v2"
 )
 
 var debug = false
@@ -76,6 +78,11 @@ func saveToken(path string, token *oauth2.Token) {
 	json.NewEncoder(f).Encode(token)
 }
 
+type Config struct {
+	Keywords map[string][]string
+	Allocations map[string]int64
+}
+
 func calculate() {
 	b, err := ioutil.ReadFile("credentials.json")
 	if err != nil {
@@ -83,11 +90,11 @@ func calculate() {
 	}
 
 	// If modifying these scopes, delete your previously saved token.json.
-	config, err := google.ConfigFromJSON(b, calendar.CalendarReadonlyScope)
+	clientConfig, err := google.ConfigFromJSON(b, calendar.CalendarReadonlyScope)
 	if err != nil {
 		log.Fatalf("Unable to parse client secret file to config: %v", err)
 	}
-	client := getClient(config)
+	client := getClient(clientConfig)
 
 	srv, err := calendar.New(client)
 	if err != nil {
@@ -109,53 +116,18 @@ func calculate() {
 		log.Fatalf("Unable to retrieve events from the past week: %v", err)
 	}
 
-	// these are substrings we categorize meetings with
-	meetingKeywords := map[string][]string{
-		"Intellectual Property": []string{
-			"IP",
-		},
-		"Internal Meetings": []string{
-			"1:1 Slava:",
-			"Town hall",
-			"Anthos On-Prem Biweekly",
-			"Braintrust",
-			"Educational Webinar",
-			"Benefits",
-			"Sync w",
-			"Beer",
-			"InfraMod",
-		},
-		"OOO": []string{},
-		"Goals": []string{
-			"Goals",
-		},
-		"Billable": []string{
-			"Visby",
-			"Neustar",
-			"N*",
-			"CF",
-			"EPS",
-			"Governance",
-		},
-		"Management": []string{
-			":Slava", // team 1:1s with me are set in the format "1:1 Employee:Manager"
-			"Management",
-			"Resourcing",
-			"Team Building",
-			"Werewolf",
-			"Weekly G Cloud Ops",
-		},
+	// unmarshal substrings we categorize meetings with
+	file, _ := filepath.Abs(cfgFile)
+	yamlfile, err := ioutil.ReadFile(file)
+
+	if err != nil {
+		log.Fatalf("Couldn't read: %v", err)
 	}
 
-	// a store for durations for each category
-	allocations := map[string]time.Duration{
-		"Intellectual Property": time.Duration(0),
-		"Internal Meetings": time.Duration(0),
-		"OOO": time.Duration(0),
-		"Goals": time.Duration(0),
-		"Billable": time.Duration(0),
-		"Management": time.Duration(0),
-	}
+	var config Config
+	yaml.Unmarshal(yamlfile, &config)
+
+	if debug { fmt.Printf("Config: %#v\n", config) }
 
 	// unmatched meetings go here
 	unmatched := []string{}
@@ -190,7 +162,7 @@ func calculate() {
 			// 	// but those already mark affected events as declined, so ignore those and just count this event alone
 			// 	// also it turns out OOO aren't all-day events
 
-			// 	allocations["OOO"] += 8 * time.Hour // TODO: who knows if this works right: one event per day, right?
+			// 	config.Allocations["OOO"] += 8 * time.Hour // TODO: who knows if this works right: one event per day, right?
 			// 	totalTime += 8 * time.Hour
 			// 	continue
 			// }
@@ -204,14 +176,14 @@ func calculate() {
 				if debug { fmt.Printf("%v %v\n", item.Summary, duration) }
 				matched := false
 
-				for meetingType, keywords := range meetingKeywords {
+				for meetingType, keywords := range config.Keywords {
 					for _, keyword := range keywords {
 						if debug { fmt.Printf("  %v:%v\n", item.Summary, keyword) }
 						if strings.Contains(strings.ToLower(item.Summary), strings.ToLower(keyword)) {
 							if debug { fmt.Printf("    %v:%v\n", item.Summary, keyword) }
 							if debug { fmt.Printf("%v assigned to %v\n", item.Summary, meetingType) }
 
-							allocations[meetingType] += duration
+							config.Allocations[meetingType] += int64(duration)
 							matched = true
 						}
 					}
@@ -230,8 +202,8 @@ func calculate() {
 	fmt.Printf("Total time: %v\n\n", totalTime)
 
 	// print category totals
-	for t, d := range allocations {
-		fmt.Printf("%v at %v\n", t, d)
+	for t, d := range config.Allocations {
+		fmt.Printf("%v at %v\n", t, time.Duration(d))
 	}
 
 	// print unmatched events
@@ -243,7 +215,7 @@ func calculate() {
 	}
 
 	// summarize billable usage
-	billableUsage := float64(allocations["Billable"])/float64(totalTime)
+	billableUsage := float64(config.Allocations["Billable"])/float64(totalTime)
 	fmt.Printf("\nBillable usage is at %.0f%%\n", billableUsage * 100)
 
 	// instruct how much billable usage is missing
