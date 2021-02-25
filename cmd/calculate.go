@@ -215,7 +215,7 @@ func calculate() {
 	}
 
 	// summarize billable usage
-	billableUsage := float64(config.Allocations["Billable"])/float64(totalTime)
+	billableUsage := float64(config.Allocations["Billable"])/float64(40*time.Hour)
 	fmt.Printf("\nBillable usage is at %.0f%%\n\n", billableUsage * 100)
 
 	// instruct how much billable usage is missing
