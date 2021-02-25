@@ -216,12 +216,12 @@ func calculate() {
 
 	// summarize billable usage
 	billableUsage := float64(config.Allocations["Billable"])/float64(totalTime)
-	fmt.Printf("\nBillable usage is at %.0f%%\n", billableUsage * 100)
+	fmt.Printf("\nBillable usage is at %.0f%%\n\n", billableUsage * 100)
 
 	// instruct how much billable usage is missing
-	if billableUsage < 70 {
+	if billableUsage < 0.7 {
 		moreBillableHours := time.Duration((0.70 - billableUsage) * float64(totalTime))
-		fmt.Printf("\n%.5v more of your hours should be billable\n", moreBillableHours)
+		fmt.Printf("%.5v more of your hours should be billable\n", moreBillableHours)
 	}
 
 	timeLeft := 40 * time.Hour - totalTime
