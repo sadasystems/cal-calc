@@ -220,7 +220,7 @@ func calculate() {
 
 	// instruct how much billable usage is missing
 	if billableUsage < 0.7 {
-		moreBillableHours := time.Duration((0.70 - billableUsage) * float64(totalTime))
+		moreBillableHours := 40 * time.Hour - time.Duration(config.Allocations["Billable"])
 		fmt.Printf("%.5v more of your hours should be billable\n", moreBillableHours)
 	}
 
