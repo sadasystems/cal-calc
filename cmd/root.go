@@ -9,6 +9,8 @@ import (
 )
 
 var cfgFile string
+var debug bool
+var info = true
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -20,7 +22,7 @@ It's best used when organizing your timesheets within Google Calendar.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		calculate()
+		calculate(viper.GetBool("debug"))
 	},
 }
 
@@ -38,6 +40,8 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./config.yaml)")
+	rootCmd.PersistentFlags().Bool("debug", false, "enable debug messaging")
+	cobra.CheckErr(viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug")))
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

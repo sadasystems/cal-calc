@@ -20,9 +20,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var debug = false
-var info = true
-
 // Retrieve a token, saves the token, then returns the generated client.
 func getClient(config *oauth2.Config) *http.Client {
 	// The file token.json stores the user's access and refresh tokens, and is
@@ -83,7 +80,7 @@ type Config struct {
 	Allocations map[string]int64
 }
 
-func calculate() {
+func calculate(debug bool) {
 	b, err := ioutil.ReadFile("credentials.json")
 	if err != nil {
 		log.Fatalf("Unable to read client secret file: %v", err)
