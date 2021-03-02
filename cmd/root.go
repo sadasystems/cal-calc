@@ -22,7 +22,10 @@ It's best used when organizing your timesheets within Google Calendar.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		calculate(viper.GetBool("debug"))
+		calculate(
+			viper.GetBool("debug"),
+			viper.GetFloat64("targetUtilization"),
+		)
 	},
 }
 
@@ -41,7 +44,9 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./config.yaml)")
 	rootCmd.PersistentFlags().Bool("debug", false, "enable debug messaging")
+	rootCmd.PersistentFlags().Float64("targetUtilization", 0.7, "utilization percentage you'd like to target")
 	cobra.CheckErr(viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug")))
+	cobra.CheckErr(viper.BindPFlag("targetUtilization", rootCmd.PersistentFlags().Lookup("targetUtilization")))
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

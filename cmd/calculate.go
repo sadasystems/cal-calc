@@ -80,7 +80,7 @@ type Config struct {
 	Allocations map[string]int64
 }
 
-func calculate(debug bool) {
+func calculate(debug bool, targetUtilization float64) {
 	b, err := ioutil.ReadFile("credentials.json")
 	if err != nil {
 		log.Fatalf("Unable to read client secret file: %v", err)
@@ -218,8 +218,8 @@ func calculate(debug bool) {
 	fmt.Printf("\nBillable usage is at %.0f%%\n", billableUsage * 100)
 
 	// instruct how much billable usage is missing
-	if billableUsage < 0.7 {
-		moreBillableHours := 40 * float64(time.Hour) * 0.7 - float64(config.Allocations["Billable"])
+	if billableUsage < targetUtilization {
+		moreBillableHours := 40 * float64(time.Hour) * targetUtilization - float64(config.Allocations["Billable"])
 		fmt.Printf("%.5v more of your hours should be billable\n", time.Duration(moreBillableHours))
 	}
 
