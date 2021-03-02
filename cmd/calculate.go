@@ -178,13 +178,15 @@ func calculate() {
 
 				for meetingType, keywords := range config.Keywords {
 					for _, keyword := range keywords {
-						if debug { fmt.Printf("  %v:%v\n", item.Summary, keyword) }
-						if strings.Contains(strings.ToLower(item.Summary), strings.ToLower(keyword)) {
-							if debug { fmt.Printf("    %v:%v\n", item.Summary, keyword) }
-							if debug { fmt.Printf("%v assigned to %v\n", item.Summary, meetingType) }
+						if ! matched {
+							if debug { fmt.Printf("  %v:%v\n", item.Summary, keyword) }
+							if strings.Contains(strings.ToLower(item.Summary), strings.ToLower(keyword)) {
+								if debug { fmt.Printf("    %v:%v\n", item.Summary, keyword) }
+								if debug { fmt.Printf("%v assigned to %v\n", item.Summary, meetingType) }
 
-							config.Allocations[meetingType] += int64(duration)
-							matched = true
+								config.Allocations[meetingType] += int64(duration)
+								matched = true
+							}
 						}
 					}
 				}
