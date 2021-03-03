@@ -151,18 +151,15 @@ func calculate(debug bool, targetUtilization float64) {
 			// filter out all-day events
 			if item.Start.DateTime == "" { continue }
 
-			// TODO: this suddenly doesn't work
-			// ./calcalc.go:180:11: item.EventType undefined (type *calendar.Event has no field or method EventType)
-			//
-			// if item.EventType == "outOfOffice" {
-			// 	// the only all-day events we care about are OOO
-			// 	// but those already mark affected events as declined, so ignore those and just count this event alone
-			// 	// also it turns out OOO aren't all-day events
+			if item.EventType == "outOfOffice" {
+				// the only all-day events we care about are OOO
+				// but those already mark affected events as declined, so ignore those and just count this event alone
+				// also it turns out OOO aren't all-day events
 
-			// 	config.Allocations["OOO"] += 8 * time.Hour // TODO: who knows if this works right: one event per day, right?
-			// 	totalTime += 8 * time.Hour
-			// 	continue
-			// }
+				config.Allocations["OOO"] += int64(8 * time.Hour) // TODO: who knows if this works right: one event per day, right?
+				totalTime += 8 * time.Hour
+				continue
+			}
 
 			start, _ := time.Parse(time.RFC3339, item.Start.DateTime)
 			end, _ := time.Parse(time.RFC3339, item.End.DateTime)
